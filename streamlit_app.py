@@ -26,10 +26,16 @@ SET100_TICKERS = [
 ]
 
 CRYPTO10 = ["BTC-USD","ETH-USD","BNB-USD","SOL-USD","XRP-USD","ADA-USD","DOGE-USD","AVAX-USD","TRX-USD","DOT-USD"]
-FOREX = ["USDTHB=X","EURUSD=X","USDJPY=X","GBPUSD=X"]
+FOREX = ["USDTHB=X","JPYTHB=X"]
 COMMODITIES = ["GC=F","SI=F","CL=F","HG=F","NG=F"]
+COMMODITY_NAMES = {
+    "GC=F": "Gold",
+    "SI=F": "Silver",
+    "CL=F": "Crude Oil",
+    "HG=F": "Copper",
+    "NG=F": "Natural Gas"
+}
 
-# Helper: add .BK when fetching Thai stocks
 def yahoo_symbol(sym):
     if sym in SET50_TICKERS or sym in SET100_TICKERS:
         return sym + ".BK"
@@ -53,24 +59,19 @@ def macd_cross(df):
     exp1 = df["Close"].ewm(span=12, adjust=False).mean()
     exp2 = df["Close"].ewm(span=26, adjust=False).mean()
     macd = exp1 - exp2
-
     signals = []
-    # Cross 2 วันก่อน → เมื่อวาน
     prev_val = float(macd.iloc[-3])
     last_val = float(macd.iloc[-2])
     if prev_val < 0 and last_val > 0:
         signals.append("CrossUp(1d ago)")
     elif prev_val > 0 and last_val < 0:
         signals.append("CrossDown(1d ago)")
-
-    # Cross เมื่อวาน → วันนี้
     prev_val = float(macd.iloc[-2])
     last_val = float(macd.iloc[-1])
     if prev_val < 0 and last_val > 0:
         signals.append("CrossUp(today)")
     elif prev_val > 0 and last_val < 0:
         signals.append("CrossDown(today)")
-
     if not signals:
         return "None"
     return " | ".join(signals)
@@ -91,18 +92,15 @@ def relative_strength(sym_a, sym_b, interval="1d", period="6mo"):
 st.title("📊 MACD Watchtower by pupuupup")
 st.markdown(
     """
-    ⚠️ คำชี้แจง (Disclaimer)
+    ⚠️ **Disclaimer**
 
-    เครื่องมือนี้ MACD Watchtower by pupuupup ถูกสร้างขึ้นเพื่อวัตถุประสงค์ด้านการศึกษาและการวิจัยเท่านั้น
-    ไม่ถือเป็นคำแนะนำทางการเงิน การลงทุน หรือสัญญาณการซื้อขาย แต่อย่างใด
-
-    ผู้ใช้งานทุกคนต้องรับผิดชอบต่อการตัดสินใจในการซื้อขายและลงทุนของตนเองทั้งหมด
-    ผู้พัฒนาไม่รับผิดชอบต่อความเสียหายทางการเงินใด ๆ ที่อาจเกิดขึ้นจากการใช้งานแอปพลิเคชันนี้
-    โปรดศึกษาข้อมูลและวิเคราะห์ด้วยตนเองก่อนตัดสินใจลงทุนทุกครั้ง
+    This MACD Watchtower by *pupuupup* is for **educational and research purposes only**.
+    It is **not** financial advice, a trading signal, or investment recommendation.
+    You are solely responsible for your own trading and investment decisions.
+    The developer takes **no responsibility** for any financial loss or damages incurred.
     """,
     unsafe_allow_html=True,
 )
-
 
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
@@ -111,19 +109,16 @@ with col2:
         "SET50 Relative Strength (SET50 as base)",
         "SET100 Relative Strength (SET50 as base)",
         "Crypto 10","Crypto 10 Relative Strength (BTC as base)","Crypto 10 Relative Strength (ETH as base)",
-        "Forex Pair","Commodity","Commodity Relative Strength (Gold as base)",
-        "Custom"
+        "Forex Pair","Commodity","Commodity Relative Strength (Gold as base)"
     ], default=["SET50"])
 
     timeframe = st.selectbox("Timeframe", ["Daily","Weekly"], index=0)
     interval = "1d" if timeframe=="Daily" else "1wk"
     period = "6mo" if timeframe=="Daily" else "2y"
 
-    custom_symbols = []
-    if "Custom" in groups:
-        cs = st.text_area("Custom Symbols", placeholder="e.g. AOT.BK, BDMS.BK, CPALL.BK, AAPL, BABA")
-        if cs:
-            custom_symbols = [s.strip().upper() for s in cs.split(",") if s.strip()]
+    # ✅ Always show custom input box (no need to select "Custom")
+    cs = st.text_area("Custom Symbols (optional)", placeholder="e.g. AOT.BK, BDMS.BK, CPALL.BK, AAPL, BABA")
+    custom_symbols = [s.strip().upper() for s in cs.split(",") if s.strip()] if cs else []
 
     run = st.button("▶ Run Scanner")
 
@@ -133,7 +128,6 @@ with col2:
 if run:
     results = {}
 
-    # --- SET50 ---
     if "SET50" in groups:
         data = []
         for s in SET50_TICKERS:
@@ -142,7 +136,6 @@ if run:
             data.append([s, sig])
         results["SET50"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    # --- SET100 ---
     if "SET100" in groups:
         data = []
         for s in SET100_TICKERS:
@@ -151,7 +144,6 @@ if run:
             data.append([s, sig])
         results["SET100"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    # --- SET50 RS ---
     if "SET50 Relative Strength (SET50 as base)" in groups:
         base = "TDEX.BK"
         data = []
@@ -161,7 +153,6 @@ if run:
             data.append([f"{s}/SET50", sig])
         results["SET50 RS"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    # --- SET100 RS ---
     if "SET100 Relative Strength (SET50 as base)" in groups:
         base = "TDEX.BK"
         data = []
@@ -171,7 +162,6 @@ if run:
             data.append([f"{s}/SET50", sig])
         results["SET100 RS"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    # --- Crypto10 ---
     if "Crypto 10" in groups:
         data = []
         for s in CRYPTO10:
@@ -200,7 +190,6 @@ if run:
             data.append([f"{s.replace('-USD','')}/ETH", sig])
         results["Crypto RS (ETH)"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    # --- Forex ---
     if "Forex Pair" in groups:
         data = []
         for s in FOREX:
@@ -209,13 +198,12 @@ if run:
             data.append([s.replace("=X",""), sig])
         results["Forex"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    # --- Commodity ---
     if "Commodity" in groups:
         data = []
         for s in COMMODITIES:
             df = fetch_yahoo(s, interval, period)
             sig = macd_cross(df)
-            data.append([s.replace("=F",""), sig])
+            data.append([COMMODITY_NAMES[s], sig])
         results["Commodity"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
     if "Commodity Relative Strength (Gold as base)" in groups:
@@ -225,10 +213,10 @@ if run:
             if s==base: continue
             rs = relative_strength(s, base, interval, period)
             sig = macd_cross(rs)
-            data.append([f"{s.replace('=F','')}/GOLD", sig])
+            data.append([f"{COMMODITY_NAMES[s]}/GOLD", sig])
         results["Commodity RS (Gold)"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    # --- Custom ---
+    # ✅ Custom section runs only if user typed something
     if custom_symbols:
         data = []
         for s in custom_symbols:
@@ -237,9 +225,7 @@ if run:
             data.append([s, sig])
         results["Custom"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    # =========================
-    # Display with color
-    # =========================
+    # Display
     for section, df in results.items():
         st.subheader(section)
         def colorize(val):
