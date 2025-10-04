@@ -88,7 +88,21 @@ def relative_strength(sym_a, sym_b, interval="1d", period="6mo"):
 # =========================
 # Streamlit UI
 # =========================
-st.title("📊 MACD Watchtower")
+st.title("📊 MACD Watchtower by pupuupup")
+st.markdown(
+    """
+    ⚠️ **Disclaimer**
+
+    This tool, *MACD Watchtower by pupuupup*, is created **for educational and research purposes only**.
+    It does **not constitute financial advice, investment recommendations, or trading signals**.
+
+    All users are solely responsible for their own trading and investment decisions.
+    The creator assumes **no liability for any financial losses** incurred from using this application.
+    Always perform your own due diligence before making investment choices.
+    """,
+    unsafe_allow_html=True,
+)
+
 
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
