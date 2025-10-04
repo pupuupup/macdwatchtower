@@ -2,53 +2,48 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
-# ===== SYMBOL GROUPS =====
-set50_tickers = [
-    "ADVANC.BK","AOT.BK","BANPU.BK","BBL.BK","BDMS.BK","BEM.BK","BGRIM.BK","BH.BK",
-    "CBG.BK","CPALL.BK","CPF.BK","CPN.BK","CRC.BK","DELTA.BK","EA.BK","EGCO.BK",
-    "GLOBAL.BK","GPSC.BK","GULF.BK","HANA.BK","HMPRO.BK","INTUCH.BK","IRPC.BK",
-    "IVL.BK","KBANK.BK","KTB.BK","KTC.BK","LH.BK","MINT.BK","OR.BK","OSP.BK",
-    "PTT.BK","PTTEP.BK","PTTGC.BK","RATCH.BK","SAWAD.BK","SCB.BK","SCC.BK","SCGP.BK",
-    "TISCO.BK","TOP.BK","TRUE.BK","TTB.BK","TU.BK","WHA.BK"
+# =========================
+# Universe lists (official)
+# =========================
+SET50_TICKERS = [
+    "ADVANC","AOT","AWC","BANPU","BBL","BCP","BDMS","BEM","BH","BJC","BTS",
+    "CBG","CCET","COM7","CPALL","CPF","CPN","CRC","DELTA","EGCO","GPSC","GULF",
+    "HMPRO","IVL","KBANK","KKP","KTB","KTC","LH","MINT","MTC","OR","OSP","PTT",
+    "PTTEP","PTTGC","RATCH","SCB","SCC","SCGP","TCAP","TIDLOR","TISCO","TLI",
+    "TOP","TRUE","TTB","TU","VGI","WHA"
 ]
 
-set100_tickers = [
-    "AAV.BK","ADVANC.BK","AEONTS.BK","AMATA.BK","AOT.BK","AP.BK","AURA.BK","AWC.BK",
-    "BA.BK","BAM.BK","BANPU.BK","BBL.BK","BCH.BK","BCP.BK","BCPG.BK","BDMS.BK",
-    "BEM.BK","BGRIM.BK","BH.BK","BJC.BK","BLA.BK","BTG.BK","BTS.BK","CBG.BK",
-    "CCET.BK","CENTEL.BK","CHG.BK","CK.BK","COM7.BK","CPALL.BK","CPF.BK","CPN.BK",
-    "CRC.BK","DELTA.BK","DOHOME.BK","EA.BK","EGCO.BK","ERW.BK","GLOBAL.BK","GPSC.BK",
-    "GULF.BK","GUNKUL.BK","HANA.BK","HMPRO.BK","ICHI.BK","IRPC.BK","ITC.BK","IVL.BK",
-    "JAS.BK","JMART.BK","JMT.BK","JTS.BK","KBANK.BK","KCE.BK","KKP.BK","KTB.BK",
-    "KTC.BK","LH.BK","M.BK","MBK.BK","MEGA.BK","MINT.BK","MOSHI.BK","MTC.BK",
-    "OR.BK","OSP.BK","PLANB.BK","PR9.BK","PRM.BK","PTT.BK","PTTEP.BK","PTTGC.BK",
-    "QH.BK","RATCH.BK","RCL.BK","SAWAD.BK","SCB.BK","SCC.BK","SCGP.BK","SIRI.BK",
-    "SISB.BK","SJWD.BK","SPALI.BK","SPRC.BK","STA.BK","STGT.BK","TASCO.BK","TCAP.BK",
-    "TFG.BK","TIDLOR.BK","TISCO.BK","TLI.BK","TOA.BK","TOP.BK","TRUE.BK","TTB.BK",
-    "TU.BK","VGI.BK","WHA.BK","WHAUP.BK"
+SET100_TICKERS = [
+    "AAV","ADVANC","AEONTS","AMATA","AOT","AP","AURA","AWC","BA","BAM","BANPU",
+    "BBL","BCH","BCP","BCPG","BDMS","BEM","BGRIM","BH","BJC","BLA","BTG","BTS",
+    "CBG","CCET","CENTEL","CHG","CK","COM7","CPALL","CPF","CPN","CRC","DELTA",
+    "DOHOME","EA","EGCO","ERW","GLOBAL","GPSC","GULF","GUNKUL","HANA","HMPRO",
+    "ICHI","IRPC","ITC","IVL","JAS","JMART","JMT","JTS","KBANK","KCE","KKP","KTB",
+    "KTC","LH","M","MBK","MEGA","MINT","MOSHI","MTC","OR","OSP","PLANB","PR9","PRM",
+    "PTT","PTTEP","PTTGC","QH","RATCH","RCL","SAWAD","SCB","SCC","SCGP","SIRI",
+    "SISB","SJWD","SPALI","SPRC","STA","STGT","TASCO","TCAP","TFG","TIDLOR","TISCO",
+    "TLI","TOA","TOP","TRUE","TTB","TU","VGI","WHA","WHAUP"
 ]
 
-crypto_pairs = [
-    "BTC-USD","ETH-USD","BNB-USD","SOL-USD","XRP-USD",
-    "DOGE-USD","ADA-USD","AVAX-USD","LINK-USD","TRX-USD"
-]
+CRYPTO10 = ["BTC-USD","ETH-USD","BNB-USD","SOL-USD","XRP-USD","ADA-USD","DOGE-USD","AVAX-USD","TRX-USD","DOT-USD"]
+FOREX = ["USDTHB=X","EURUSD=X","USDJPY=X","GBPUSD=X"]
+COMMODITIES = ["GC=F","SI=F","CL=F","HG=F","NG=F"]
 
-commodities = {
-    "GC=F": "Gold",
-    "SI=F": "Silver",
-    "CL=F": "Crude Oil"
-}
+# Helper: add .BK when fetching Thai stocks
+def yahoo_symbol(sym):
+    if sym in SET50_TICKERS or sym in SET100_TICKERS:
+        return sym + ".BK"
+    return sym
 
-forex_pairs = ["USDTHB=X"]
-
-# ===== HELPERS =====
+# =========================
+# Data Functions
+# =========================
 def fetch_yahoo(symbol, interval="1d", period="6mo"):
     try:
-        df = yf.download(symbol, period=period, interval=interval, progress=False, auto_adjust=False)
-        if "Close" in df and not df.empty:
-            return df[["Close"]]
-        else:
+        df = yf.download(symbol, interval=interval, period=period, progress=False, auto_adjust=False)
+        if df is None or df.empty:
             return None
+        return df[["Close"]]
     except Exception:
         return None
 
@@ -58,14 +53,27 @@ def macd_cross(df):
     exp1 = df["Close"].ewm(span=12, adjust=False).mean()
     exp2 = df["Close"].ewm(span=26, adjust=False).mean()
     macd = exp1 - exp2
-    prev_val = macd.iloc[-3].item()
-    last_val = macd.iloc[-2].item()
+
+    signals = []
+    # Cross 2 วันก่อน → เมื่อวาน
+    prev_val = float(macd.iloc[-3])
+    last_val = float(macd.iloc[-2])
     if prev_val < 0 and last_val > 0:
-        return "CrossUp"
+        signals.append("CrossUp(1d ago)")
     elif prev_val > 0 and last_val < 0:
-        return "CrossDown"
-    else:
+        signals.append("CrossDown(1d ago)")
+
+    # Cross เมื่อวาน → วันนี้
+    prev_val = float(macd.iloc[-2])
+    last_val = float(macd.iloc[-1])
+    if prev_val < 0 and last_val > 0:
+        signals.append("CrossUp(today)")
+    elif prev_val > 0 and last_val < 0:
+        signals.append("CrossDown(today)")
+
+    if not signals:
         return "None"
+    return " | ".join(signals)
 
 def relative_strength(sym_a, sym_b, interval="1d", period="6mo"):
     df_a = fetch_yahoo(sym_a, interval, period)
@@ -74,80 +82,157 @@ def relative_strength(sym_a, sym_b, interval="1d", period="6mo"):
         return None
     df = pd.concat([df_a["Close"], df_b["Close"]], axis=1, join="inner")
     df.columns = ["A", "B"]
-    df["RS"] = df["A"] / df["B"]
-    return df[["RS"]]
+    rs_df = (df["A"] / df["B"]).to_frame(name="Close")
+    return rs_df
 
-# ===== STREAMLIT APP =====
-st.title("📊 MACD Zero-Line Cross & Relative Strength Scanner")
+# =========================
+# Streamlit UI
+# =========================
+st.title("📊 MACD Watchtower")
 
-# Group toggles
-groups = {
-    "SET50": st.checkbox("SET50", value=False),
-    "SET100": st.checkbox("SET100", value=False),
-    "SET50 RS": st.checkbox("SET50 Relative Strength", value=False),
-    "SET100 RS": st.checkbox("SET100 Relative Strength", value=False),
-    "Crypto": st.checkbox("Crypto 10", value=False),
-    "Crypto RS BTC": st.checkbox("Crypto RS (BTC base)", value=False),
-    "Crypto RS ETH": st.checkbox("Crypto RS (ETH base)", value=False),
-    "Forex": st.checkbox("Forex Pair", value=False),
-    "Commodity": st.checkbox("Commodity", value=False),
-    "Commodity RS": st.checkbox("Commodity RS (Gold base)", value=False),
-}
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    groups = st.multiselect("Select Groups", [
+        "SET50","SET100",
+        "SET50 Relative Strength (SET50 as base)",
+        "SET100 Relative Strength (SET50 as base)",
+        "Crypto 10","Crypto 10 Relative Strength (BTC as base)","Crypto 10 Relative Strength (ETH as base)",
+        "Forex Pair","Commodity","Commodity Relative Strength (Gold as base)",
+        "Custom"
+    ], default=["SET50"])
 
-# Custom list
-custom_symbols = st.text_area("Custom Symbols (comma-separated, e.g. SISB.BK,NETBAY.BK)", "")
-if custom_symbols:
-    custom_list = [s.strip() for s in custom_symbols.split(",")]
-else:
-    custom_list = []
+    timeframe = st.selectbox("Timeframe", ["Daily","Weekly"], index=0)
+    interval = "1d" if timeframe=="Daily" else "1wk"
+    period = "6mo" if timeframe=="Daily" else "2y"
 
-# Timeframe choice
-timeframe = st.radio("Timeframe", ["Daily", "Weekly"], index=0)
+    custom_symbols = []
+    if "Custom" in groups:
+        cs = st.text_area("Custom Symbols", placeholder="e.g. AOT.BK, BDMS.BK, CPALL.BK, AAPL, BABA")
+        if cs:
+            custom_symbols = [s.strip().upper() for s in cs.split(",") if s.strip()]
 
-if st.button("▶ Run Scanner"):
-    st.write("### Results")
+    run = st.button("▶ Run Scanner")
 
-    interval = "1d" if timeframe == "Daily" else "1wk"
-    period = "6mo" if timeframe == "Daily" else "2y"
+# =========================
+# Run Scanner
+# =========================
+if run:
+    results = {}
 
-    results = []
+    # --- SET50 ---
+    if "SET50" in groups:
+        data = []
+        for s in SET50_TICKERS:
+            df = fetch_yahoo(yahoo_symbol(s), interval, period)
+            sig = macd_cross(df)
+            data.append([s, sig])
+        results["SET50"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    # Example: SET50
-    if groups["SET50"]:
-        for s in set50_tickers:
+    # --- SET100 ---
+    if "SET100" in groups:
+        data = []
+        for s in SET100_TICKERS:
+            df = fetch_yahoo(yahoo_symbol(s), interval, period)
+            sig = macd_cross(df)
+            data.append([s, sig])
+        results["SET100"] = pd.DataFrame(data, columns=["Symbol","Signal"])
+
+    # --- SET50 RS ---
+    if "SET50 Relative Strength (SET50 as base)" in groups:
+        base = "TDEX.BK"
+        data = []
+        for s in SET50_TICKERS:
+            rs = relative_strength(yahoo_symbol(s), base, interval, period)
+            sig = macd_cross(rs)
+            data.append([f"{s}/SET50", sig])
+        results["SET50 RS"] = pd.DataFrame(data, columns=["Symbol","Signal"])
+
+    # --- SET100 RS ---
+    if "SET100 Relative Strength (SET50 as base)" in groups:
+        base = "TDEX.BK"
+        data = []
+        for s in SET100_TICKERS:
+            rs = relative_strength(yahoo_symbol(s), base, interval, period)
+            sig = macd_cross(rs)
+            data.append([f"{s}/SET50", sig])
+        results["SET100 RS"] = pd.DataFrame(data, columns=["Symbol","Signal"])
+
+    # --- Crypto10 ---
+    if "Crypto 10" in groups:
+        data = []
+        for s in CRYPTO10:
             df = fetch_yahoo(s, interval, period)
-            status = macd_cross(df)
-            results.append([s, status])
+            sig = macd_cross(df)
+            data.append([s.replace("-USD",""), sig])
+        results["Crypto 10"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    if groups["SET100"]:
-        for s in set100_tickers:
+    if "Crypto 10 Relative Strength (BTC as base)" in groups:
+        base = "BTC-USD"
+        data = []
+        for s in CRYPTO10:
+            if s==base: continue
+            rs = relative_strength(s, base, interval, period)
+            sig = macd_cross(rs)
+            data.append([f"{s.replace('-USD','')}/BTC", sig])
+        results["Crypto RS (BTC)"] = pd.DataFrame(data, columns=["Symbol","Signal"])
+
+    if "Crypto 10 Relative Strength (ETH as base)" in groups:
+        base = "ETH-USD"
+        data = []
+        for s in CRYPTO10:
+            if s==base: continue
+            rs = relative_strength(s, base, interval, period)
+            sig = macd_cross(rs)
+            data.append([f"{s.replace('-USD','')}/ETH", sig])
+        results["Crypto RS (ETH)"] = pd.DataFrame(data, columns=["Symbol","Signal"])
+
+    # --- Forex ---
+    if "Forex Pair" in groups:
+        data = []
+        for s in FOREX:
             df = fetch_yahoo(s, interval, period)
-            status = macd_cross(df)
-            results.append([s, status])
+            sig = macd_cross(df)
+            data.append([s.replace("=X",""), sig])
+        results["Forex"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    if custom_list:
-        for s in custom_list:
+    # --- Commodity ---
+    if "Commodity" in groups:
+        data = []
+        for s in COMMODITIES:
             df = fetch_yahoo(s, interval, period)
-            status = macd_cross(df)
-            results.append([s, status])
+            sig = macd_cross(df)
+            data.append([s.replace("=F",""), sig])
+        results["Commodity"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    if groups["Crypto"]:
-        for s in crypto_pairs:
+    if "Commodity Relative Strength (Gold as base)" in groups:
+        base = "GC=F"
+        data = []
+        for s in COMMODITIES:
+            if s==base: continue
+            rs = relative_strength(s, base, interval, period)
+            sig = macd_cross(rs)
+            data.append([f"{s.replace('=F','')}/GOLD", sig])
+        results["Commodity RS (Gold)"] = pd.DataFrame(data, columns=["Symbol","Signal"])
+
+    # --- Custom ---
+    if custom_symbols:
+        data = []
+        for s in custom_symbols:
             df = fetch_yahoo(s, interval, period)
-            status = macd_cross(df)
-            results.append([s, status])
+            sig = macd_cross(df)
+            data.append([s, sig])
+        results["Custom"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    if groups["Commodity"]:
-        for s, name in commodities.items():
-            df = fetch_yahoo(s, interval, period)
-            status = macd_cross(df)
-            results.append([name, status])
-
-    if groups["Forex"]:
-        for s in forex_pairs:
-            df = fetch_yahoo(s, interval, period)
-            status = macd_cross(df)
-            results.append([s, status])
-
-    st.dataframe(pd.DataFrame(results, columns=["Symbol", "MACD Status"]))
+    # =========================
+    # Display with color
+    # =========================
+    for section, df in results.items():
+        st.subheader(section)
+        def colorize(val):
+            if str(val).startswith("CrossUp"):
+                return "background-color: lightgreen; color: black;"
+            if str(val).startswith("CrossDown"):
+                return "background-color: salmon; color: black;"
+            return "color: grey;"
+        st.dataframe(df.style.applymap(colorize, subset=["Signal"]))
 
