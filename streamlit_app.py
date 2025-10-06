@@ -25,7 +25,14 @@ SET100_TICKERS = [
     "TLI","TOA","TOP","TRUE","TTB","TU","VGI","WHA","WHAUP"
 ]
 
-CRYPTO10 = ["BTC-USD","ETH-USD","BNB-USD","SOL-USD","XRP-USD","ADA-USD","DOGE-USD","AVAX-USD","TRX-USD","DOT-USD"]
+CRYPTO30 = [
+    "BTC-USD","ETH-USD","XRP-USD","BNB-USD","SOL-USD","DOGE-USD","TRX-USD",
+    "ADA-USD","HYPE-USD","LINK-USD","SUI-USD","XLM-USD","AVAX-USD","BCH-USD",
+    "HBAR-USD","LTC-USD","LEO-USD","SHIB-USD","CRO-USD","TON-USD","MNT-USD",
+    "DOT-USD","XMR-USD","UNI-USD","WLFI-USD","OKB-USD","AAVE-USD","ENA-USD",
+    "PEPE-USD","BGB-USD"
+]
+
 FOREX = ["USDTHB=X","JPYTHB=X"]
 COMMODITIES = ["GC=F","SI=F","CL=F","HG=F","NG=F"]
 COMMODITY_NAMES = {
@@ -110,7 +117,7 @@ with col2:
         "SET50","SET100",
         "SET50 Relative Strength (SET50 as base)",
         "SET100 Relative Strength (SET50 as base)",
-        "Crypto 10","Crypto 10 Relative Strength (BTC as base)","Crypto 10 Relative Strength (ETH as base)",
+        "Crypto 30","Crypto 30 Relative Strength (BTC as base)","Crypto 30 Relative Strength (ETH as base)",
         "Forex Pair","Commodity","Commodity Relative Strength (Gold as base)"
     ], default=["SET50"])
 
@@ -164,28 +171,28 @@ if run:
             data.append([f"{s}/SET50", sig])
         results["SET100 RS"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    if "Crypto 10" in groups:
+    if "Crypto 30" in groups:
         data = []
-        for s in CRYPTO10:
+        for s in CRYPTO30:
             df = fetch_yahoo(s, interval, period)
             sig = macd_cross(df)
             data.append([s.replace("-USD",""), sig])
-        results["Crypto 10"] = pd.DataFrame(data, columns=["Symbol","Signal"])
+        results["Crypto 30"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    if "Crypto 10 Relative Strength (BTC as base)" in groups:
+    if "Crypto 30 Relative Strength (BTC as base)" in groups:
         base = "BTC-USD"
         data = []
-        for s in CRYPTO10:
+        for s in CRYPTO30:
             if s==base: continue
             rs = relative_strength(s, base, interval, period)
             sig = macd_cross(rs)
             data.append([f"{s.replace('-USD','')}/BTC", sig])
         results["Crypto RS (BTC)"] = pd.DataFrame(data, columns=["Symbol","Signal"])
 
-    if "Crypto 10 Relative Strength (ETH as base)" in groups:
+    if "Crypto 30 Relative Strength (ETH as base)" in groups:
         base = "ETH-USD"
         data = []
-        for s in CRYPTO10:
+        for s in CRYPTO30:
             if s==base: continue
             rs = relative_strength(s, base, interval, period)
             sig = macd_cross(rs)
